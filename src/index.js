@@ -7,7 +7,8 @@ if(path!=='/dub'||req.method!=='POST')return json({error:'Nenalezeno'},404);
 const token=env.APP_TOKEN||env.TEST_TOKEN;
 if(!token||req.headers.get('Authorization')!=='Bearer '+token)return json({error:'Neplatný token'},401);
 try{
-if(!env.AI||!env.ELEVENLABS_API_KEY||!env.ELEVENLABS_VOICE_ID)return json({error:'Chybí konfigurace serveru'},503);
+const missing=['AI','ELEVENLABS_API_KEY','ELEVENLABS_VOICE_ID'].filter(name=>!env[name]);
+if(missing.length)return json({error:'Chybí konfigurace serveru: '+missing.join(', ')},503);
 const {text}=await req.json();if(typeof text!=='string'||!text.trim()||text.length>500)return json({error:'Zadej 1–500 znaků'},400);
 const result=await env.AI.run('@cf/meta/m2m100-1.2b',{text,source_lang:'en',target_lang:'cs'});
 const translation=result.translated_text;if(!translation)throw Error('translation');
